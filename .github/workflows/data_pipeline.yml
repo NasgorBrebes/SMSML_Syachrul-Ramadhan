@@ -1,0 +1,39 @@
+name: Data Preprocessing Pipeline
+
+# Trigger: Jalan setiap kali ada push ke branch main
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  preprocess-job:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Ambil kode dari repository
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # 2. Siapkan Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    # 3. Install Library yang dibutuhkan
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # 4. Jalankan Script Automate yang tadi kita buat
+    - name: Run Preprocessing Script
+      run: python preprocessing/automate_User.py 
+
+    # 5. Cek apakah file output berhasil dibuat (sebagai bukti log)
+    - name: Verify Output Files
+      run: |
+        ls -l dataset_raw/
+        echo "Preprocessing Selesai. File csv baru harusnya terlihat di atas."
