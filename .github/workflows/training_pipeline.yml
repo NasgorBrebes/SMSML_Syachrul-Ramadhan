@@ -31,7 +31,7 @@ jobs:
       # 3. Install Library
       - name: Install Dependencies
         run: |
-          pip install pandas numpy scikit-learn mlflow dagshub seaborn matplotlib
+          pip install -r requirements.txt
 
       # 4. Login ke Docker Hub (Agar bisa upload image)
       - name: Login to Docker Hub
