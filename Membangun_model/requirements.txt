@@ -5,3 +5,7 @@ mlflow
 dagshub
 matplotlib
 seaborn
+protobuf>=4.25.3,<5
+opentelemetry-proto<1.27.0
+opentelemetry-api<1.27.0
+opentelemetry-sdk<1.27.0
