@@ -31,7 +31,7 @@ jobs:
       # 3. Install Library
       - name: Install Dependencies
         run: |
-          pip install -r requirements.txt
+          pip install -r Membangun_model/requirements.txt
 
       # 4. Login ke Docker Hub (Agar bisa upload image)
       - name: Login to Docker Hub
