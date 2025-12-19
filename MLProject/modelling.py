@@ -10,7 +10,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 
 # --- KONFIGURASI ---
 # Link MLflow DagsHub milikmu
-MLFLOW_TRACKING_URI = "https://dagshub.com/NasgorBrebes/Proyek-Akhir-MLOps.mlflow"
+# Menggunakan environment variable jika ada, jika tidak gunakan fallback
+MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "https://dagshub.com/NasgorBrebes/Proyek-Akhir-MLOps.mlflow")
 
 def train_and_tune():
     # 1. Load Data (Mengambil data bersih dari folder dataset_raw)
@@ -18,14 +19,14 @@ def train_and_tune():
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     DATA_DIR = os.path.join(BASE_DIR, 'dataset_raw')
     
-    print("🔄 Loading data dari folder dataset_raw...")
+    print("[INFO] Loading data dari folder dataset_raw...")
     try:
         X_train = pd.read_csv(os.path.join(DATA_DIR, 'X_train.csv'))
         y_train = pd.read_csv(os.path.join(DATA_DIR, 'y_train.csv')).values.ravel()
         X_test = pd.read_csv(os.path.join(DATA_DIR, 'X_test.csv'))
         y_test = pd.read_csv(os.path.join(DATA_DIR, 'y_test.csv')).values.ravel()
     except FileNotFoundError:
-        print("❌ Error: File X_train/y_train tidak ditemukan. Jalankan automate Kriteria 1 dulu!")
+        print("[ERROR] File X_train/y_train tidak ditemukan. Jalankan automate Kriteria 1 dulu!")
         return
 
     # 2. Setup MLflow ke DagsHub
@@ -33,19 +34,18 @@ def train_and_tune():
     mlflow.set_experiment("Experiment_Interview_Model")
 
     # 3. Hyperparameter Tuning (Manual Loop)
-    # Kita coba kombinasi jumlah pohon (n_estimators) dan kedalaman (max_depth)
     n_estimators_list = [50, 100]
     max_depth_list = [10, 20]
     
     run_count = 0
-    print(f"🚀 Mulai Training ke DagsHub: {MLFLOW_TRACKING_URI}")
+    print(f"[INFO] Mulai Training ke DagsHub: {MLFLOW_TRACKING_URI}")
     
     for n_est in n_estimators_list:
         for depth in max_depth_list:
             run_count += 1
             run_name = f"Run_{run_count}_Est{n_est}_Depth{depth}"
             
-            print(f"   ▶ Training {run_name}...")
+            print(f"   [INFO] Training {run_name}...")
             
             with mlflow.start_run(run_name=run_name):
                 # A. Train Model
@@ -63,7 +63,10 @@ def train_and_tune():
                 print(f"      --> Accuracy: {acc:.4f}")
                 
                 # Log Model (Simpan file model .pkl ke cloud)
-                mlflow.sklearn.log_model(model, "model")
+                # Pastikan signature model di-log untuk best practice (opsional tapi disarankan)
+                from mlflow.models.signature import infer_signature
+                signature = infer_signature(X_train, model.predict(X_train))
+                mlflow.sklearn.log_model(model, "model", signature=signature)
                 
                 # D. LOG ARTEFAK TAMBAHAN (Syarat Advance: Min 2 Artefak)
                 
@@ -90,7 +93,7 @@ def train_and_tune():
                 if os.path.exists(cm_path): os.remove(cm_path)
                 if os.path.exists(report_path): os.remove(report_path)
 
-    print("\n✅ Tuning Selesai! Cek website DagsHub kamu sekarang.")
+    print("\n[INFO] Tuning Selesai! Cek website DagsHub kamu sekarang.")
 
 if __name__ == "__main__":
     train_and_tune()
